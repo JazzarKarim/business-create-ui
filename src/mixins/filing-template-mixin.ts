@@ -1,52 +1,14 @@
-// Libraries and mixins
 import { Component } from 'vue-property-decorator'
 import { Getter, Action } from 'vuex-class'
 import { DateMixin } from '@/mixins'
-
-// Interfaces
-import {
-  ActionBindingIF,
-  ContactPointIF,
-  CertifyIF,
-  CreateRulesIF,
-  DissolutionStatementIF,
-  EffectiveDateTimeIF,
-  DefineCompanyIF,
-  DissolutionFilingIF,
-  IncorporationAgreementIF,
-  IncorporationFilingIF,
-  NameTranslationIF,
-  PeopleAndRoleIF,
-  DocIF,
-  ShareStructureIF,
-  CreateMemorandumIF,
-  BusinessIF,
-  UploadAffidavitIF,
-  StaffPaymentStepIF,
-  CourtOrderStepIF,
-  CreateResolutionIF,
-  DocumentDeliveryIF,
-  OrgPersonIF,
-  SpecialResolutionIF,
-  RegistrationFilingIF,
-  RegistrationStateIF,
-  RestorationFilingIF,
-  RestorationStateIF,
-  EmptyNaics,
-  PartyIF,
-  CompletingPartyIF
-} from '@/interfaces'
-
-// Enums
-import {
-  CorpTypeCd,
-  DissolutionTypes,
-  EffectOfOrders,
-  FilingTypes,
-  PartyTypes,
-  RoleTypes,
-  StaffPaymentOptions
-} from '@/enums'
+import { ActionBindingIF, BusinessIF, ContactPointIF, CertifyIF, CompletingPartyIF, CourtOrderStepIF,
+  CreateMemorandumIF, CreateResolutionIF, CreateRulesIF, DefineCompanyIF, DissolutionFilingIF,
+  DissolutionStatementIF, DocIF, DocumentDeliveryIF, EffectiveDateTimeIF, EmptyNaics,
+  IncorporationAgreementIF, IncorporationFilingIF, NameTranslationIF, OrgPersonIF, PartyIF,
+  PeopleAndRoleIF, RegistrationFilingIF, RegistrationStateIF, RestorationFilingIF, RestorationStateIF,
+  ShareStructureIF, SpecialResolutionIF, StaffPaymentStepIF, UploadAffidavitIF } from '@/interfaces'
+import { CorpTypeCd, DissolutionTypes, EffectOfOrders, FilingTypes, PartyTypes, RoleTypes,
+  StaffPaymentOptions } from '@/enums'
 
 /**
  * Mixin that provides the integration with the Legal API.
@@ -133,6 +95,9 @@ export default class FilingTemplateMixin extends DateMixin {
   @Action setRegistrationBusinessType!: ActionBindingIF
   @Action setRegistrationBusinessTypeConfirm!: ActionBindingIF
   @Action setDissolutionDate!: ActionBindingIF
+  @Action setRestorationDate!: ActionBindingIF
+  @Action setRestorationType!: ActionBindingIF
+  @Action setRestorationExpiry!: ActionBindingIF
 
   /**
    * Builds an incorporation filing from store data. Used when saving a filing.
@@ -427,9 +392,9 @@ export default class FilingTemplateMixin extends DateMixin {
       },
       // *** TODO: add/remove properties as needed
       restoration: {
-        date: '',
-        type: '',
-        expiry: '',
+        date: this.getRestoration.date,
+        type: this.getRestoration.type,
+        expiry: this.getRestoration.expiry || undefined, // can't be null
         nameRequest: {
           legalName: this.getNameRequestApprovedName,
           legalType: this.getEntityType,
@@ -557,10 +522,9 @@ export default class FilingTemplateMixin extends DateMixin {
     this.setFoundingDate(draftFiling.business.foundingDate)
 
     // restore Restoration data
-
-    // *** TODO: restore date
-    // *** TODO: restore type
-    // *** TODO: restore expiry
+    this.setRestorationDate(draftFiling.restoration.date)
+    this.setRestorationType(draftFiling.restoration.type)
+    this.setRestorationExpiry(draftFiling.restoration.expiry || null)
 
     // NB: no need to restore Name Request data
     // it will be reloaded from NR endpoint in App.vue

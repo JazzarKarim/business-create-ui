@@ -32,13 +32,13 @@
             <span class="rule-item-txt">{{rule.text}}</span>
           </li>
           <li v-if="rule.id === RuleIds.NUM_INCORPORATORS" :key="index">
-            <v-icon v-if="validMinimumIncorporators" color="green darken-2" class="incorp-valid">mdi-check</v-icon>
+            <v-icon v-if="validNumIncorporators" color="green darken-2" class="incorp-valid">mdi-check</v-icon>
             <v-icon v-else-if="getShowErrors" color="error" class="incorp-invalid">mdi-close</v-icon>
             <v-icon v-else>mdi-circle-small</v-icon>
             <span class="rule-item-txt">{{rule.text}}</span>
           </li>
           <li v-if="rule.id === RuleIds.NUM_DIRECTORS" :key="index">
-            <v-icon v-if="validMinimumDirectors" color="green darken-2" class="dir-valid">mdi-check</v-icon>
+            <v-icon v-if="validNumDirectors" color="green darken-2" class="dir-valid">mdi-check</v-icon>
             <v-icon v-else-if="getShowErrors" color="error" class="dir-invalid">mdi-close</v-icon>
             <v-icon v-else>mdi-circle-small</v-icon>
             <span class="rule-item-txt">{{rule.text}}</span>
@@ -55,12 +55,24 @@
             <v-icon v-else>mdi-circle-small</v-icon>
             <span class="rule-item-txt">{{rule.text}}</span>
           </li>
+          <li v-if="rule.id === RuleIds.NUM_APPLICANT_PERSON" :key="index">
+            <v-icon v-if="validApplicantPerson" color="green darken-2" class="dir-valid">mdi-check</v-icon>
+            <v-icon v-else-if="getShowErrors" color="error" class="dir-invalid">mdi-close</v-icon>
+            <v-icon v-else>mdi-circle-small</v-icon>
+            <span class="rule-item-txt">{{rule.text}}</span>
+          </li>
+          <li v-if="rule.id === RuleIds.NUM_APPLICANT_ORG" :key="index">
+            <v-icon v-if="validApplicantOrg" color="green darken-2" class="dir-valid">mdi-check</v-icon>
+            <v-icon v-else-if="getShowErrors" color="error" class="dir-invalid">mdi-close</v-icon>
+            <v-icon v-else>mdi-circle-small</v-icon>
+            <span class="rule-item-txt">{{rule.text}}</span>
+          </li>
         </template>
       </ul>
     </section>
 
     <!-- Start by Adding the Completing Party -->
-    <div v-if="orgPersonList.length === 0">
+    <div v-if="(orgPersonList.length === 0) && requireCompletingParty">
       <v-btn
         id="btn-start-add-cp"
         outlined
@@ -75,9 +87,9 @@
     </div>
 
     <!-- Add a Person or Organization -->
-    <div v-if="orgPersonList.length > 0">
+    <div v-if="(orgPersonList.length > 0) || !requireCompletingParty">
       <v-btn
-        v-if="!validNumCompletingParty"
+        v-if="requireCompletingParty && !validNumCompletingParty"
         id="btn-add-cp"
         outlined
         color="primary"
@@ -101,12 +113,13 @@
         <span>Add a Person</span>
       </v-btn>
 
+      <!-- *** TODO: do not add as Incorporator for restorations -->
       <v-btn
+        v-if="getPeopleAndRolesResource.addOrganization"
         id="btn-add-organization"
         outlined
         color="primary"
         class="btn-outlined-primary mt-6"
-        v-if="getPeopleAndRolesResource.addOrganization"
         :disabled="showOrgPersonForm"
         @click="addOrgPerson(RoleTypes.INCORPORATOR, PartyTypes.ORGANIZATION)"
       >
@@ -123,7 +136,6 @@
           :initialValue="currentOrgPerson"
           :activeIndex="activeIndex"
           :existingCompletingParty="completingParty"
-          :addIncorporator="getPeopleAndRolesResource.addIncorporator"
           @addEditPerson="onAddEditPerson($event)"
           @removePerson="onRemovePerson($event)"
           @resetEvent="resetData()"
@@ -176,16 +188,8 @@ export default class PeopleAndRoles extends Vue {
     // first assign empty org/person object
     this.currentOrgPerson = cloneDeep(EmptyOrgPerson)
 
-    if (roleType) {
-      // a role was provided - pre-select it
-      this.currentOrgPerson.roles = [{ roleType }]
-    } else if (this.validNumCompletingParty && !this.getPeopleAndRolesResource.addIncorporator) {
-      // only Director role is possible - pre-select it
-      this.currentOrgPerson.roles = [{ roleType: RoleTypes.DIRECTOR }]
-    } else {
-      // no roles pre-selected
-      this.currentOrgPerson.roles = []
-    }
+    // assign pre-selected role if any
+    this.currentOrgPerson.roles = roleType ? [{ roleType }] : []
 
     // assign party type (org or person)
     this.currentOrgPerson.officer.partyType = partyType

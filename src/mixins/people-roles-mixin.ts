@@ -2,10 +2,8 @@ import Vue from 'vue'
 import { Component } from 'vue-property-decorator'
 import { Action, Getter } from 'vuex-class'
 import { CorpTypeCd, NumWord, PartyTypes, RoleTypes, RuleIds } from '@/enums'
-import {
-  ActionBindingIF, AddressIF, ConfirmDialogType, OrgPersonIF, PeopleAndRoleIF,
-  PeopleAndRolesResourceIF, RegistrationStateIF, TombstoneIF
-} from '@/interfaces'
+import { ActionBindingIF, AddressIF, ConfirmDialogType, OrgPersonIF, PeopleAndRoleIF,
+  PeopleAndRolesResourceIF, RegistrationStateIF } from '@/interfaces'
 
 /**
  * Mixin that provides common people and roles methods.
@@ -51,6 +49,11 @@ export default class PeopleRolesMixin extends Vue {
   async mounted (): Promise<void> {
     // set initial validity
     this.setAddPeopleAndRoleStepValidity(this.hasValidRoles())
+  }
+
+  /** Whether a Completing Party is required. */
+  get requireCompletingParty (): boolean {
+    return this.getPeopleAndRolesResource.rules.some(r => r.id === RuleIds.NUM_COMPLETING_PARTY)
   }
 
   /** Single string if blurb is a string. */
@@ -107,6 +110,11 @@ export default class PeopleRolesMixin extends Vue {
     return this.orgPersonList.filter(person => this.isPartner(person))
   }
 
+  /** The list of applicants. */
+  get applicants (): OrgPersonIF[] {
+    return this.orgPersonList.filter(person => this.isApplicant(person))
+  }
+
   /** The list of people without roles. */
   get peopleWithNoRoles (): OrgPersonIF[] {
     return this.orgPersonList.filter(people => people.roles.length === 0)
@@ -125,14 +133,14 @@ export default class PeopleRolesMixin extends Vue {
   }
 
   /** Whether the Number of Incorporators rule is valid. Always true if rule doesn't exist. */
-  get validMinimumIncorporators (): boolean {
+  get validNumIncorporators (): boolean {
     const rule = this.getPeopleAndRolesResource.rules.find(r => r.id === RuleIds.NUM_INCORPORATORS)
     if (!rule) return true
     return rule.test(this.incorporators.length)
   }
 
   /** Whether the Number of Directors rule is valid. Always true if rule doesn't exist. */
-  get validMinimumDirectors (): boolean {
+  get validNumDirectors (): boolean {
     const rule = this.getPeopleAndRolesResource.rules.find(r => r.id === RuleIds.NUM_DIRECTORS)
     if (!rule) return true
     return rule.test(this.directors.length)
@@ -144,7 +152,7 @@ export default class PeopleRolesMixin extends Vue {
     if (!rule) return true
     const num = this.directors.filter(d => rule.test(d.mailingAddress.addressCountry)).length
     // evaluate this rule only when there are enough minimum directors
-    return (this.validMinimumDirectors && num > this.directors.length / 2) // more than half
+    return (this.validNumDirectors && num > this.directors.length / 2) // more than half
   }
 
   /** Whether the Director Province rule is valid. Always true if rule doesn't exist. */
@@ -155,6 +163,20 @@ export default class PeopleRolesMixin extends Vue {
       d => rule.test(d.mailingAddress.addressCountry, d.mailingAddress.addressRegion)
     ).length
     return (num > 0) // at least one
+  }
+
+  /** Whether the Applicant Person rule is valid. Always true if rule doesn't exist. */
+  get validApplicantPerson (): boolean {
+    const rule = this.getPeopleAndRolesResource.rules.find(r => r.id === RuleIds.NUM_APPLICANT_PERSON)
+    if (!rule) return true
+    return rule.test(this.applicants.length)
+  }
+
+  /** Whether the Applicant Org rule is valid. Always true if rule doesn't exist. */
+  get validApplicantOrg (): boolean {
+    const rule = this.getPeopleAndRolesResource.rules.find(r => r.id === RuleIds.NUM_APPLICANT_ORG)
+    if (!rule) return true
+    return rule.test(this.applicants.length)
   }
 
   /** Whether the Number of Proprietors rule is valid. Always true if rule doesn't exist. */
@@ -209,6 +231,11 @@ export default class PeopleRolesMixin extends Vue {
   /** Returns true if specified org/person is a partner. */
   public isPartner (orgPerson: OrgPersonIF): boolean {
     return orgPerson?.roles.some(role => role.roleType === RoleTypes.PARTNER)
+  }
+
+  /** Returns true if specified org/person is an applicant. */
+  public isApplicant (orgPerson: OrgPersonIF): boolean {
+    return orgPerson?.roles.some(role => role.roleType === RoleTypes.APPLICANT)
   }
 
   /** Called by ListPeopleAndRoles component event. */
@@ -291,10 +318,12 @@ export default class PeopleRolesMixin extends Vue {
   protected hasValidRoles (): boolean {
     return (
       this.validNumCompletingParty &&
-      this.validMinimumIncorporators &&
-      this.validMinimumDirectors &&
+      this.validNumIncorporators &&
+      this.validNumDirectors &&
       this.validDirectorCountry &&
       this.validDirectorProvince &&
+      this.validApplicantPerson &&
+      this.validApplicantOrg &&
       this.validNumProprietors &&
       this.validNumPartners &&
       !this.validPeopleWithNoRoles

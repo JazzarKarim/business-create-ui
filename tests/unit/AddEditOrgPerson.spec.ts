@@ -11,6 +11,9 @@ import { EmptyOrgPerson } from '@/interfaces'
 // mock the console.warn function to hide "[Vuetify] Unable to locate target XXX"
 console.warn = jest.fn()
 
+// prevent the warning "[Vuetify] Unable to locate target [data-app]"
+document.body.setAttribute('data-app', 'true')
+
 Vue.use(Vuetify)
 Vue.use(Vuelidate)
 
@@ -129,20 +132,19 @@ function createComponent (
   initialValue: any, // person
   activeIndex: number,
   existingCompletingParty: any,
-  addIncorporator = true
+  computed = null
 ): Wrapper<AddEditOrgPerson> {
   const localVue = createLocalVue()
   localVue.use(Vuetify)
-  document.body.setAttribute('data-app', 'true')
   return mount(AddEditOrgPerson, {
     localVue,
     data () { return { enableRules: true } },
     propsData: {
       initialValue,
       activeIndex,
-      existingCompletingParty,
-      addIncorporator
+      existingCompletingParty
     },
+    computed,
     store,
     vuetify
   })
@@ -329,7 +331,12 @@ describe('Add/Edit Org/Person component', () => {
 
   it('Shows popup if there is already a completing party', async () => {
     store.state.stateModel.tombstone.authRoles = ['staff']
-    const wrapper: Wrapper<AddEditOrgPerson> = createComponent(validIncorporator, NaN, validPersonData)
+    const wrapper: Wrapper<AddEditOrgPerson> = createComponent(
+      validIncorporator,
+      NaN,
+      validPersonData,
+      { requireCompletingParty: () => true }
+    )
 
     const cpCheckBox: Wrapper<Vue> = wrapper.find(completingPartyChkBoxSelector)
     cpCheckBox.setChecked(true)
@@ -343,15 +350,22 @@ describe('Add/Edit Org/Person component', () => {
 
   it('Emits events correctly on confirming reassign completing party', async () => {
     store.state.stateModel.tombstone.authRoles = ['staff']
-    const wrapper: Wrapper<AddEditOrgPerson> = createComponent(validIncorporator, NaN, validPersonData)
+    const wrapper: Wrapper<AddEditOrgPerson> = createComponent(
+      validIncorporator,
+      NaN,
+      validPersonData,
+      { requireCompletingParty: () => true }
+    )
 
     const cpCheckBox: Wrapper<Vue> = wrapper.find(completingPartyChkBoxSelector)
     cpCheckBox.setChecked(true)
     await Vue.nextTick()
+
     const reassignDialog: any = wrapper.vm.$refs.confirmDialog
     expect(reassignDialog).toBeTruthy()
     await reassignDialog.onClickYes()
     await flushPromises()
+
     expect(wrapper.vm.$data.reassignCompletingParty).toBe(true)
     wrapper.find(doneButtonSelector).trigger('click')
     await Vue.nextTick()
@@ -361,11 +375,6 @@ describe('Add/Edit Org/Person component', () => {
 
     expect(wrapper.emitted().addEditPerson).toBeTruthy()
     expect(wrapper.emitted(addEditPersonEvent).length).toBe(1)
-    const incorporatorWithAddedRole = { ...validIncorporator }
-    incorporatorWithAddedRole.roles = [
-      { roleType: 'Completing Party', appointmentDate: '2020-03-30' },
-      { roleType: 'Incorporator', appointmentDate: '2020-03-30' }
-    ]
 
     const event = wrapper.emitted(addEditPersonEvent)[0][0]
     expect(event.officer.firstName).toBe(validIncorporator.officer.firstName)

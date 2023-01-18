@@ -1,45 +1,12 @@
 import Vuetify from 'vuetify'
-import {
-  AccountTypes,
-  CoopTypes,
-  CorpTypeCd,
-  DissolutionTypes,
-  FilingNames,
-  FilingTypes,
-  FilingTypesSubTitle
-} from '@/enums'
-import {
-  AccountInformationIF,
-  AddressIF,
-  ContactPointIF,
-  BusinessIF,
-  CertifyIF,
-  CourtOrderStepIF,
-  CreateMemorandumIF,
-  CreateResolutionIF,
-  CreateRulesIF,
-  DefineCompanyIF,
-  DissolutionStatementIF,
-  DissolutionStateIF,
-  DocumentDeliveryIF,
-  EffectiveDateTimeIF,
-  FeesIF,
-  IncorporationAgreementIF,
-  NameRequestIF,
-  NameTranslationIF,
-  OrgPersonIF,
-  PeopleAndRoleIF,
-  RegistrationStateIF,
-  RestorationStateIF,
-  ShareStructureIF,
-  StaffPaymentStepIF,
-  StateIF,
-  TombstoneIF,
-  UploadAffidavitIF,
-  OrgInformationIF,
-  CompletingPartyIF,
-  PartyIF
-} from '@/interfaces'
+import { AccountTypes, CoopTypes, CorpTypeCd, DissolutionTypes, FilingNames, FilingTypes,
+  FilingTypesSubTitle, RestorationTypes } from '@/enums'
+import { AccountInformationIF, AddressIF, BusinessIF, CertifyIF, CompletingPartyIF, ContactPointIF,
+  CourtOrderStepIF, CreateMemorandumIF, CreateResolutionIF, CreateRulesIF, DefineCompanyIF,
+  DissolutionStatementIF, DissolutionStateIF, DocumentDeliveryIF, EffectiveDateTimeIF, FeesIF,
+  IncorporationAgreementIF, NameRequestIF, NameTranslationIF, OrgInformationIF, OrgPersonIF,
+  PartyIF, PeopleAndRoleIF, RegistrationStateIF, RestorationStateIF, ShareStructureIF,
+  StaffPaymentStepIF, StateIF, TombstoneIF, UploadAffidavitIF } from '@/interfaces'
 import { getMaxStep } from './resource-getters'
 
 /** True if current screen width is mobile. */
@@ -51,22 +18,32 @@ export const isMobile = (state: StateIF): boolean => {
 
 /** Whether the current filing is an Incorporation. */
 export const isIncorporationFiling = (state: StateIF): boolean => {
-  return getFilingType(state) === FilingTypes.INCORPORATION_APPLICATION
+  return (getFilingType(state) === FilingTypes.INCORPORATION_APPLICATION)
 }
 
 /** Whether the current filing is a Dissolution. */
 export const isDissolutionFiling = (state: StateIF): boolean => {
-  return getFilingType(state) === FilingTypes.VOLUNTARY_DISSOLUTION
+  return (getFilingType(state) === FilingTypes.VOLUNTARY_DISSOLUTION)
 }
 
 /** Whether the current filing is a Registration. */
 export const isRegistrationFiling = (state: StateIF): boolean => {
-  return getFilingType(state) === FilingTypes.REGISTRATION
+  return (getFilingType(state) === FilingTypes.REGISTRATION)
 }
 
 /** Whether the current filing is a Restoration. */
 export const isRestorationFiling = (state: StateIF): boolean => {
-  return getFilingType(state) === FilingTypes.RESTORATION
+  return (getFilingType(state) === FilingTypes.RESTORATION)
+}
+
+/** Whether the current filing is a Limited Restoration. */
+export const isLimitedRestorationFiling = (state: StateIF): boolean => {
+  return (getRestoration(state).type === RestorationTypes.LIMITED)
+}
+
+/** Whether the current filing is a Full Restoration. */
+export const isFullRestorationFiling = (state: StateIF): boolean => {
+  return (getRestoration(state).type === RestorationTypes.FULL)
 }
 
 /** The current filing type. */
@@ -79,7 +56,7 @@ export const getFilingName = (state: StateIF): FilingNames => {
   switch (getFilingType(state)) {
     case FilingTypes.INCORPORATION_APPLICATION: return FilingNames.INCORPORATION_APPLICATION
     case FilingTypes.REGISTRATION: return FilingNames.REGISTRATION
-    case FilingTypes.RESTORATION: return FilingNames.RESTORATION
+    case FilingTypes.RESTORATION: return FilingNames.RESTORATION_APPLICATION
     case FilingTypes.VOLUNTARY_DISSOLUTION:
       return isTypeFirm(state) ? FilingNames.DISSOLUTION_FIRM : FilingNames.VOLUNTARY_DISSOLUTION
     default: return null // should never happen
@@ -545,13 +522,14 @@ export const isRegistrationValid = (state: StateIF): boolean => {
 /** Whether all the restoration steps are valid. */
 export const isRestorationValid = (state: StateIF): boolean => {
   const isCertifyValid = getCertifyState(state).valid && !!getCertifyState(state).certifiedBy
+  const isStaffPaymentValid = isRoleStaff(state) ? getStaffPaymentStep(state).valid : true
 
   return (
     getRestoration(state).applicantInfoValid &&
     getRestoration(state).businessInfoValid &&
     getRestoration(state).businessNameValid &&
     isCertifyValid &&
-    getStaffPaymentStep(state).valid
+    isStaffPaymentValid
   )
 }
 
@@ -623,6 +601,11 @@ export const getCourtOrderStep = (state: StateIF): CourtOrderStepIF => {
 
 export const getDocumentDelivery = (state: StateIF): DocumentDeliveryIF => {
   return state.stateModel.documentDelivery
+}
+
+/** The restoration object. */
+export const getRestoration = (state: StateIF): RestorationStateIF => {
+  return state.stateModel.restoration
 }
 
 //
@@ -702,13 +685,4 @@ export const getDissolutionDate = (state: StateIF): string => {
 /** The parties list. */
 export const getParties = (state: StateIF): Array<PartyIF> => {
   return state.stateModel.parties
-}
-
-//
-// Restoration getters
-//
-
-/** The restoration object. */
-export const getRestoration = (state: StateIF): RestorationStateIF => {
-  return state.stateModel.restoration
 }
