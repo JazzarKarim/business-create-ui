@@ -20,6 +20,7 @@ export * from './roleTypes'
 export * from './routeNames'
 export * from './ruleIds'
 export * from './views'
+export * from './NameChangeOptions'
 
 // external enums
 export { CorpTypeCd } from '@bcrs-shared-components/corp-type-module'

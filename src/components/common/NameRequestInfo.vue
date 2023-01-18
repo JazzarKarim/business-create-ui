@@ -62,25 +62,16 @@
         >
           <v-col cols="12" sm="3" class="pr-4">
             <label>
-              <strong>Name</strong>
+              <strong>Business Name</strong>
             </label>
           </v-col>
 
           <v-col cols="12" sm="9">
-            <ul class="numbered-company-list-items">
-              <li id="numbered-company-title">
-                <strong>[Incorporation Number]</strong> B.C. Ltd.
-              </li>
-              <li class="mt-4"><strong>Entity Type:</strong> {{ getEntityTypeDescription }}</li>
-              <li class="mt-2"><strong>Request Type:</strong> {{ requestType }}</li>
-              <li class="bullet-point mt-4 ml-6">You will be filing this Incorporation Application for a company
-                created by adding "B.C. Ltd." after the Incorporation Number.
-              </li>
-              <li class="bullet-point ml-6">Your Incorporation Number will be generated at the end of the filing
-                transaction.
-              </li>
-              <li class="bullet-point ml-6">It is not possible to request a specific Incorporation Number.</li>
-            </ul>
+            <CorrectNameOptions
+            :correctionNameChoices="nameChangeOptions"
+            @isSaved="nameChangeHandler($event)"
+            @cancel="isEditingNames = false"
+          />
           </v-col>
         </v-row>
       </div>
@@ -120,7 +111,6 @@
                 Names that use other writing systems must spell the name phonetically in English or
                 French.
               </p>
-
               <v-btn
                 outlined color="primary"
                 class="mt-6"
@@ -166,7 +156,7 @@ import { getName } from 'country-list'
 import AddNameTranslation from '@/components/common/AddNameTranslation.vue'
 import { ConfirmDialog } from '@bcrs-shared-components/confirm-dialog'
 import ListNameTranslations from '@/components/common/ListNameTranslations.vue'
-import { CorpTypeCd, NameRequestStates } from '@/enums'
+import { CorpTypeCd, NameRequestStates, NameChangeOptions } from '@/enums'
 import {
   ActionBindingIF,
   ConfirmDialogType,
@@ -178,12 +168,14 @@ import {
 import { DateMixin } from '@/mixins'
 import { GetCorpFullDescription } from '@bcrs-shared-components/corp-type-module'
 import { Capitalize } from '@/utils'
+import CorrectNameOptions from '../Restoration/CorrectNameOptions.vue'
 
 @Component({
   components: {
     AddNameTranslation,
     ConfirmDialog,
-    ListNameTranslations
+    ListNameTranslations,
+    CorrectNameOptions
   },
   mixins: [
     DateMixin
@@ -407,6 +399,19 @@ export default class NameRequestInfo extends Vue {
   /** Whether name translation is valid. */
   get isValidNameTranslation (): boolean {
     return (this.hasNameTranslation ? this.getNameTranslations?.length > 0 : true)
+  }
+
+  /** The current options for change of name correction or edit. */
+  get nameChangeOptions (): Array<NameChangeOptions> {
+    // if this is a numbered company, remove correct-name and name-to-number options
+    if (this.isNumberedCompany) {
+      return this.getResource.changeData.nameChangeOptions.filter(option => (
+        option !== NameChangeOptions.CORRECT_NAME &&
+        option !== NameChangeOptions.CORRECT_NAME_TO_NUMBER
+      ))
+    }
+    // return this.getResource.changeData.nameChangeOptions
+    return ['correct-name-to-number', 'correct-new-nr']
   }
 
   // Events

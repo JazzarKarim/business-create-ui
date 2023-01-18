@@ -72,6 +72,9 @@ export * from './common/address-interface'
 // Registration interfaces
 export * from './Registration/business-address-interface'
 
+// Correction interfaces
+export * from './correction_interfaces/correct-name-interface'
+
 // External interfaces
 // NB: importing EmptyAddress doesn't work in local components
 export {
