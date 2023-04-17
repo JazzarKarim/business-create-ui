@@ -212,6 +212,15 @@ export const routes = [
     }
   },
   {
+    path: '/consent-continuation-out',
+    name: RouteNames.CONSENT_CONTINUATION_OUT,
+    component: Views.ConsentContinuationOut,
+    meta: {
+      requiresAuth: true,
+      filingType: FilingTypes.CONSENT_CONTINUATION_OUT
+    }
+  },
+  {
     // default/fallback route
     // must be last
     // NB: this route is IA-specific but App::fetchData() will reroute

@@ -6,6 +6,9 @@ export enum RouteNames {
   SIGN_IN = 'signin',
   SIGN_OUT = 'signout',
 
+  // Consent to continuation out route name
+  CONSENT_CONTINUATION_OUT = 'consent-continuation-out',
+
   // Dissolution route names
   DISSOLUTION_AFFIDAVIT = 'dissolution-affidavit',
   DISSOLUTION_DEFINE_DISSOLUTION = 'dissolution-define-dissolution',

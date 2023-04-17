@@ -6,6 +6,9 @@ export enum Views {
   SIGN_IN = 'signin',
   SIGN_OUT = 'signout',
 
+  // Consent Continuation Out views
+  CONSENT_CONTINUATION_OUT = 'consent-continuation-out',
+
   // Dissolution views
   DISSOLUTION_AFFIDAVIT = 'dissolution-affidavit',
   DISSOLUTION_DEFINE_DISSOLUTION = 'dissolution-define-dissolution',

@@ -210,8 +210,8 @@ import * as Views from '@/views'
 import { CommonMixin, DateMixin, FilingTemplateMixin, NameRequestMixin } from '@/mixins'
 import { AccountInformationIF, ActionBindingIF, AddressIF, BreadcrumbIF, BusinessIF, CompletingPartyIF,
   ConfirmDialogType, EmptyFees, FilingDataIF, OrgInformationIF, ResourceIF, StepIF } from '@/interfaces'
-import { DissolutionResources, IncorporationResources, RegistrationResources, RestorationResources,
-  getEntityDashboardBreadcrumb, getMyBusinessRegistryBreadcrumb, getRegistryDashboardBreadcrumb,
+import { ConsentContinuationOutResources, DissolutionResources, IncorporationResources, RegistrationResources,
+  RestorationResources, getEntityDashboardBreadcrumb, getMyBusinessRegistryBreadcrumb, getRegistryDashboardBreadcrumb,
   getSbcStaffDashboardBreadcrumb, getStaffDashboardBreadcrumb } from '@/resources'
 import { AuthServices, LegalServices, PayServices } from '@/services/'
 
@@ -623,7 +623,8 @@ export default class App extends Vue {
     // don't check FF during Jest tests
     if (!this.isJestRunning) {
       // check that current route matches a supported filing type
-      const supportedFilings = await GetFeatureFlag('supported-filings')
+      let supportedFilings = await GetFeatureFlag('supported-filings')
+      supportedFilings = supportedFilings + ' consentContinuationOut'
       if (!supportedFilings?.includes(this.$route.meta.filingType)) {
         window.alert('This filing type is not available at the moment. Please check again later.')
         this.goToDashboard(true)
@@ -714,6 +715,9 @@ export default class App extends Vue {
           case FilingTypes.RESTORATION:
             this.$router.push(RouteNames.RESTORATION_BUSINESS_NAME).catch(() => {})
             return
+          case FilingTypes.CONSENT_CONTINUATION_OUT:
+            this.$router.push(RouteNames.CONSENT_CONTINUATION_OUT).catch(() => {})
+            return
           default:
             this.invalidRouteDialog = true
             throw new Error(`fetchData(): invalid filing type = ${this.getFilingType}`) // go to catch()
@@ -797,6 +801,14 @@ export default class App extends Vue {
         }
         this.parseRestorationDraft(draftFiling)
         resources = RestorationResources.find(x => x.entityType === this.getEntityType)
+        break
+      case FilingTypes.CONSENT_CONTINUATION_OUT:
+        draftFiling = {
+          ...this.buildConsentContinuationOutFiling(),
+          ...draftFiling
+        }
+        this.parseConsentContinuationOutDraft(draftFiling)
+        resources = ConsentContinuationOutResources.find(x => x.entityType === this.getEntityType)
         break
       default:
         throw new Error(`handleDissolutionOrRestoration(): invalid filing type = ${this.getFilingType}`)

@@ -2,6 +2,10 @@ import { DissolutionResourceIF, IncorporationResourceIF, RegistrationResourceIF,
   from '@/interfaces'
 
 import {
+  ConsentContinuationOutResourceBc
+} from './ConsentContinuationOut/'
+
+import {
   DissolutionResourceBc,
   DissolutionResourceBen,
   DissolutionResourceCc,
@@ -30,6 +34,10 @@ import {
   RestorationResourceCc,
   RestorationResourceUlc
 } from './Restoration/'
+
+export const ConsentContinuationOutResources: Array<any> = [
+  ConsentContinuationOutResourceBc
+]
 
 export const DissolutionResources: Array<DissolutionResourceIF> = [
   DissolutionResourceBc,

@@ -1,8 +1,8 @@
 import { Component } from 'vue-property-decorator'
 import { Getter, Action } from 'vuex-class'
 import { DateMixin } from '@/mixins'
-import { ActionBindingIF, BusinessIF, ContactPointIF, CertifyIF, CompletingPartyIF, CourtOrderStepIF,
-  CreateMemorandumIF, CreateResolutionIF, CreateRulesIF, DefineCompanyIF, DissolutionFilingIF,
+import { ActionBindingIF, BusinessIF, ContactPointIF, CertifyIF, CompletingPartyIF, ConsentContinuationOutFilingIF,
+  CourtOrderStepIF, CreateMemorandumIF, CreateResolutionIF, CreateRulesIF, DefineCompanyIF, DissolutionFilingIF,
   DissolutionStatementIF, DocIF, DocumentDeliveryIF, EffectiveDateTimeIF, EmptyNaics,
   IncorporationAgreementIF, IncorporationFilingIF, NameRequestFilingIF, NameTranslationIF, OrgPersonIF,
   PartyIF, PeopleAndRoleIF, RegistrationFilingIF, RegistrationStateIF, RestorationFilingIF,
@@ -1052,5 +1052,40 @@ export default class FilingTemplateMixin extends DateMixin {
       }
     }
     return toReturn
+  }
+
+  /**
+   * Builds a Consent to Continuation Out filing body.
+   * @returns the filing body
+   */
+  buildConsentContinuationOutFiling (): ConsentContinuationOutFilingIF {
+    const consentContinuationOut: ConsentContinuationOutFilingIF = {
+      header: {
+        date: this.getCurrentDate,
+        name: FilingTypes.CONSENT_CONTINUATION_OUT
+      },
+      business: {
+        legalType: this.getEntityType,
+        identifier: this.getBusinessId,
+        legalName: this.getBusinessLegalName,
+        foundingDate: this.getBusinessFoundingDate
+      },
+      consentContinuationOut: {
+        details: ''
+      }
+    }
+    return consentContinuationOut
+  }
+
+  /**
+   * Parses a draft consent to continuation out filing into the store. Used when loading a filing.
+   * @param draftFiling the filing body to parse
+   */
+  parseConsentContinuationOutDraft (draftFiling: any): void {
+    // save filing id
+    this.setFilingId(+draftFiling.header.filingId)
+
+    // restore Entity Type
+    this.setEntityType(draftFiling.business.legalType)
   }
 }

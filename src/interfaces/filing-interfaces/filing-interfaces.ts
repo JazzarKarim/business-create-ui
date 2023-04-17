@@ -197,3 +197,28 @@ export interface RestorationFilingIF {
     type: RestorationTypes
   }
 }
+
+/** Consent to Continuation Out filing interface. */
+export interface ConsentContinuationOutFilingIF {
+  header: {
+    bcolAccountNumber?: string
+    certifiedBy?: string
+    date: string
+    datNumber?: string
+    effectiveDate?: string
+    folioNumber?: string
+    name: string
+    priority?: boolean
+    routingSlipNumber?: string
+    waiveFees?: boolean
+  }
+  business: {
+    foundingDate: string
+    identifier: string
+    legalName: string
+    legalType: string
+  }
+  consentContinuationOut: {
+    details: string
+  }
+}

@@ -47,6 +47,11 @@ export const isFullRestorationFiling = (state: StateIF): boolean => {
   return (getRestoration(state).type === RestorationTypes.FULL)
 }
 
+/** Whether the current filing is a Consent to Continuation Out. */
+export const isConsentContinuationOutFiling = (state: StateIF): boolean => {
+  return (getFilingType(state) === FilingTypes.CONSENT_CONTINUATION_OUT)
+}
+
 /** The current filing type. */
 export const getFilingType = (state: StateIF): FilingTypes => {
   return getTombstone(state).filingType
@@ -55,6 +60,7 @@ export const getFilingType = (state: StateIF): FilingTypes => {
 /** The current filing name. */
 export const getFilingName = (state: StateIF): FilingNames => {
   switch (getFilingType(state)) {
+    case FilingTypes.CONSENT_CONTINUATION_OUT: return FilingNames.CONSENT_CONTINUATION_OUT
     case FilingTypes.INCORPORATION_APPLICATION: return FilingNames.INCORPORATION_APPLICATION
     case FilingTypes.REGISTRATION: return FilingNames.REGISTRATION
     case FilingTypes.RESTORATION: return FilingNames.RESTORATION_APPLICATION
@@ -216,6 +222,7 @@ export const getBusinessNumber = (state: StateIF): string => {
 
 export const getEntityIdentifier = (state: StateIF): string => {
   switch (getFilingType(state)) {
+    case FilingTypes.CONSENT_CONTINUATION_OUT: return getTempId(state)
     case FilingTypes.INCORPORATION_APPLICATION: return getTempId(state)
     case FilingTypes.REGISTRATION: return getTempId(state)
     case FilingTypes.RESTORATION: return getBusinessId(state)
